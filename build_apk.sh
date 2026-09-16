@@ -6,9 +6,16 @@ MODE="${1:-debug}"
 cd "$(dirname "$0")"
 
 echo "== 1/5 toolchain check"
-export JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-17-openjdk-amd64}"
+# Capacitor 8 / AGP 8.13 compiles against Java 21. Pick the newest suitable JDK.
+if [ -z "${JAVA_HOME:-}" ] || ! "$JAVA_HOME/bin/javac" -version 2>&1 | grep -qE ' (21|22|23|24)'; then
+  for CAND in /usr/lib/jvm/java-21-openjdk-amd64 /usr/lib/jvm/java-21* /usr/lib/jvm/default-java; do
+    [ -x "$CAND/bin/javac" ] && export JAVA_HOME="$CAND" && break
+  done
+fi
+: "${JAVA_HOME:=$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")}"
 export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"
-[ -x "$JAVA_HOME/bin/java" ] || { echo "FAIL: JDK 17 not at $JAVA_HOME. Set JAVA_HOME."; exit 2; }
+[ -x "$JAVA_HOME/bin/javac" ] || { echo "FAIL: no JDK found. Install JDK 21: sudo apt-get install -y openjdk-21-jdk"; exit 2; }
+"$JAVA_HOME/bin/javac" -version 2>&1 | grep -qE ' (21|22|23|24)' || { echo "FAIL: JDK 21+ required (this project compiles to Java 21). Found: $("$JAVA_HOME/bin/javac" -version 2>&1). Set JAVA_HOME to a JDK 21 install."; exit 2; }
 [ -d "$ANDROID_HOME/platforms" ] || { echo "FAIL: Android SDK not at $ANDROID_HOME. Set ANDROID_HOME to the SDK Godot uses (see ~/.config/godot/editor_settings-4.3.tres export/android/android_sdk_path)."; exit 2; }
 command -v node >/dev/null || { echo "FAIL: node missing (need 18+)"; exit 2; }
 echo "java=$("$JAVA_HOME/bin/java" -version 2>&1 | head -1)  sdk=$ANDROID_HOME  node=$(node -v)"

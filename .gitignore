@@ -10,3 +10,5 @@ ios/App/App/public/
 *.jks
 keystore.properties
 .DS_Store
+*.aab
+*.apk
