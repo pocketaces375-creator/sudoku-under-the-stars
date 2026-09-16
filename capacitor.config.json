@@ -1,0 +1,10 @@
+{
+  "appId": "com.lucidmind.sudokustars",
+  "appName": "Sudoku Under the Stars",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "backgroundColor": "#070d19",
+    "allowMixedContent": false
+  }
+}
